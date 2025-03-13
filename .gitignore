@@ -2,3 +2,4 @@
 *.csv
 *.png
 !arduino_daq_data_20250313_135842_clean.csv
+!arduino_daq_data_20250313_135842_clean_plot.png
