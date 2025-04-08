@@ -1,5 +1,3 @@
-# serial_recive_with_lowpass
-
 import serial
 import platform
 import glob
@@ -112,8 +110,16 @@ def filter_and_save_data(filename, cutoff_freq=2.0, filter_order=4):
         print(f"Error filtering data: {e}")
         return filename
 
-def plot_data(filename, show_original=True, show_filtered=True):
-    """Plot the DAQ data, showing both original and filtered signals if available"""
+def plot_data(filename, show_original=True, show_filtered=True, overlapping_plots=False):
+    """
+    Plot the DAQ data, showing both original and filtered signals if available
+    
+    Parameters:
+    filename (str): The CSV file to plot
+    show_original (bool): Whether to show the original data
+    show_filtered (bool): Whether to show the filtered data
+    overlapping_plots (bool): If True, overlaps all channels on a single plot; otherwise creates separate subplots
+    """
     try:
         # Read the CSV data
         try:
@@ -134,37 +140,72 @@ def plot_data(filename, show_original=True, show_filtered=True):
         # Check for filtered columns
         has_filtered = any('_filtered' in col for col in df.columns)
         
-        # Create the plot
-        plt.figure(figsize=(12, 10))
-        
-        # Organize subplots - one subplot per analog channel
+        # Identify all analog channels
         analog_channels = [col for col in df.columns if col.startswith('A') and col.endswith('(V)') and not '_filtered' in col]
         
-        for i, channel in enumerate(analog_channels):
-            plt.subplot(len(analog_channels), 1, i+1)
+        # Create color cycle for different channels
+        colors = ['orange', 'yellow', 'blue', 'purple', 'pink', 'pink', 'pink', 'pink']
+        
+        if overlapping_plots:
+            # Create a single plot with all channels overlapping
+            plt.figure(figsize=(14, 8))
             
-            # Plot original data if requested
+            # Plot original data
             if show_original:
-                plt.plot(df['Time(ms)'], df[channel], label=f'{channel} Original', 
-                         linewidth=1, alpha=0.7, color='lightgray')
+                for i, channel in enumerate(analog_channels):
+                    color = colors[i % len(colors)]
+                    plt.plot(df['Time(ms)'], df[channel], label=f'{channel} Original', 
+                            linewidth=1.5, alpha=0.4, color=color, linestyle='-')
             
-            # Plot filtered data if available and requested
-            filtered_channel = f"{channel}_filtered"
-            if has_filtered and filtered_channel in df.columns and show_filtered:
-                plt.plot(df['Time(ms)'], df[filtered_channel], label=f'{channel} Filtered', 
-                         linewidth=2, color='blue')
+            # Plot filtered data
+            if has_filtered and show_filtered:
+                for i, channel in enumerate(analog_channels):
+                    filtered_channel = f"{channel}_filtered"
+                    if filtered_channel in df.columns:
+                        color = colors[i % len(colors)]
+                        plt.plot(df['Time(ms)'], df[filtered_channel], label=f'{channel} Filtered', 
+                                linewidth=2.5, color=color, linestyle='-')
             
             # Set the y-axis range from 0 to 5V
             plt.ylim(0, 5)
             
-            # Add labels
+            # Add labels and title
+            plt.xlabel('Time (ms)')
             plt.ylabel('Voltage (V)')
-            if i == len(analog_channels) - 1:  # Only add x-label for bottom subplot
-                plt.xlabel('Time (ms)')
-            
-            plt.title(f'Channel {channel}')
+            plt.title('Arduino DAQ - All Channels')
             plt.legend()
             plt.grid(True)
+            
+        else:
+            # Create the plot with individual subplots per channel
+            plt.figure(figsize=(12, 10))
+            
+            # Organize subplots - one subplot per analog channel
+            for i, channel in enumerate(analog_channels):
+                plt.subplot(len(analog_channels), 1, i+1)
+                
+                # Plot original data if requested
+                if show_original:
+                    plt.plot(df['Time(ms)'], df[channel], label=f'{channel} Original', 
+                            linewidth=1, alpha=0.7, color='lightgray')
+                
+                # Plot filtered data if available and requested
+                filtered_channel = f"{channel}_filtered"
+                if has_filtered and filtered_channel in df.columns and show_filtered:
+                    plt.plot(df['Time(ms)'], df[filtered_channel], label=f'{channel} Filtered', 
+                            linewidth=2, color='blue')
+                
+                # Set the y-axis range from 0 to 5V
+                plt.ylim(0, 5)
+                
+                # Add labels
+                plt.ylabel('Voltage (V)')
+                if i == len(analog_channels) - 1:  # Only add x-label for bottom subplot
+                    plt.xlabel('Time (ms)')
+                
+                plt.title(f'Channel {channel}')
+                plt.legend()
+                plt.grid(True)
         
         # Add some information about the data range
         min_voltage = min(df[analog_channels].min())
@@ -192,7 +233,8 @@ def plot_data(filename, show_original=True, show_filtered=True):
                     bbox=dict(facecolor='white', alpha=0.8))
         
         # Save the plot
-        plot_filename = f"{os.path.splitext(filename)[0]}_plot.png"
+        plot_suffix = "_overlapped" if overlapping_plots else "_subplots"
+        plot_filename = f"{os.path.splitext(filename)[0]}{plot_suffix}_plot.png"
         plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
         print(f"Plot saved as {plot_filename}")
         
@@ -313,7 +355,7 @@ def main():
                 
                 # Start time for timeout
                 start_time = time.time()
-                timeout_duration = 15  # seconds
+                timeout_duration = 60  # timeout to prevent loop #seconds 
                 
                 while recording and (time.time() - start_time) < timeout_duration:
                     if ser.in_waiting:
@@ -352,7 +394,9 @@ def main():
             # Ask if user wants to plot the data
             plot_choice = input("Plot the data? (y/n): ")
             if plot_choice.lower() == 'y':
-                plot_data(filtered_filename, show_original=True, show_filtered=True)
+                plot_style = input("Plot style - separate subplots or overlapping channels? (s/o): ").lower()
+                overlapping = plot_style == 'o'
+                plot_data(filtered_filename, show_original=True, show_filtered=True, overlapping_plots=overlapping)
                 
     except serial.SerialException as e:
         print(f"Error: {e}")
@@ -395,7 +439,9 @@ def filter_existing_file():
     # Plot the results
     plot_choice = input("Plot the filtered data? (y/n): ")
     if plot_choice.lower() == 'y':
-        plot_data(filtered_filename, show_original=True, show_filtered=True)
+        plot_style = input("Plot style - separate subplots or overlapping channels? (s/o): ").lower()
+        overlapping = plot_style == 'o'
+        plot_data(filtered_filename, show_original=True, show_filtered=True, overlapping_plots=overlapping)
 
 if __name__ == "__main__":
     print("Arduino DAQ with Low-Pass Filter")
