@@ -10,6 +10,10 @@ import re
 import numpy as np
 from scipy import signal
 
+# the arduino code decides recording length, this is just a timeout which
+# must be greater than the time in arduino code
+recordingLength = 60 # seconds # Must change both here and in arduino_code.cpp
+
 def list_available_ports():
     """Lists all available serial ports based on the operating system"""
     system = platform.system()
@@ -355,7 +359,7 @@ def main():
                 
                 # Start time for timeout
                 start_time = time.time()
-                timeout_duration = 60  # timeout to prevent loop #seconds 
+                timeout_duration = recordingLength  # timeout to prevent loop #seconds 
                 
                 while recording and (time.time() - start_time) < timeout_duration:
                     if ser.in_waiting:

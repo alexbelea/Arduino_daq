@@ -10,7 +10,7 @@
   
   // Timing variables
   unsigned long startTime;
-  const unsigned long recordingDuration = 55000; // 25 seconds in milliseconds
+  const unsigned long recordingDuration = 5000; // 25 seconds in milliseconds (ENSURE python code is greater than this)
   unsigned long lastSampleTime = 0;
   const unsigned long sampleInterval = 2; // Sample every 2ms (adjust for stability)
   
