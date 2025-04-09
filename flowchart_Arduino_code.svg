@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 800 1200"
+   version="1.1"
+   id="svg43"
+   sodipodi:docname="flowchart_Arduino_code.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview43"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.3753227"
+     inkscape:cx="426.44538"
+     inkscape:cy="904.15145"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg43" />
+  <!-- Styles -->
+  <style
+     id="style1">
+    .box { fill: white; stroke: #333; stroke-width: 2; }
+    .decision { fill: white; stroke: #333; stroke-width: 2; }
+    .start-end { fill: #d4f1f9; stroke: #333; stroke-width: 2; }
+    .process { fill: #e6f2ff; stroke: #333; stroke-width: 2; }
+    .io { fill: #ffe6cc; stroke: #333; stroke-width: 2; }
+    .arrow { stroke: #333; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    .text { font-family: Arial; font-size: 14px; fill: black; }
+    .title { font-family: Arial; font-size: 18px; font-weight: bold; fill: black; }
+    .small-text { font-family: Arial; font-size: 12px; fill: black; }
+  </style>
+  <!-- Arrow marker definition -->
+  <defs
+     id="defs1">
+    <marker
+       id="arrowhead"
+       markerWidth="10"
+       markerHeight="7"
+       refX="9"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="0 0, 10 3.5, 0 7"
+         fill="#333"
+         id="polygon1" />
+    </marker>
+    <marker
+       id="arrowhead-5"
+       markerWidth="10"
+       markerHeight="7"
+       refX="9"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#333333"
+         id="polygon1-5" />
+    </marker>
+    <marker
+       id="arrowhead-1"
+       markerWidth="10"
+       markerHeight="7"
+       refX="9"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#333333"
+         id="polygon1-1" />
+    </marker>
+  </defs>
+  <!-- Title -->
+  <text
+     x="400"
+     y="30"
+     class="title"
+     text-anchor="middle"
+     id="text1">Arduino DAQ System Flowchart</text>
+  <!-- START -->
+  <ellipse
+     cx="400"
+     cy="70"
+     rx="70"
+     ry="30"
+     class="start-end"
+     id="ellipse1" />
+  <text
+     x="400"
+     y="75"
+     class="text"
+     text-anchor="middle"
+     id="text2">Start</text>
+  <!-- SETUP -->
+  <rect
+     x="300"
+     y="120"
+     width="200"
+     height="100"
+     rx="5"
+     class="process"
+     id="rect2" />
+  <text
+     x="400"
+     y="145"
+     class="text"
+     text-anchor="middle"
+     id="text3">Setup</text>
+  <text
+     x="400"
+     y="170"
+     class="small-text"
+     text-anchor="middle"
+     id="text4">Initialize Serial (115200 bps)</text>
+  <text
+     x="400"
+     y="190"
+     class="small-text"
+     text-anchor="middle"
+     id="text5">Configure analog inputs</text>
+  <text
+     x="400"
+     y="210"
+     class="small-text"
+     text-anchor="middle"
+     id="text6">Optimize ADC (prescaler to 16)</text>
+  <!-- Send Ready Message -->
+  <path
+     d="m 260.01753,251.31951 h 279.96494 l -41.99474,27.36098 H 302.01227 Z"
+     class="io"
+     id="path6" />
+  <text
+     x="400"
+     y="270"
+     class="text"
+     text-anchor="middle"
+     id="text7">Send &quot;ARDUINO_DAQ_READY&quot;</text>
+  <!-- Check if serial data available -->
+  <rect
+     x="300"
+     y="310"
+     width="200"
+     height="50"
+     rx="5"
+     class="process"
+     id="rect7" />
+  <text
+     x="400"
+     y="340"
+     class="text"
+     text-anchor="middle"
+     id="text8">Enter main loop</text>
+  <!-- Serial Available? -->
+  <polygon
+     points="400,380 500,430 400,480 300,430"
+     class="decision"
+     id="polygon8" />
+  <text
+     x="400"
+     y="435"
+     class="text"
+     text-anchor="middle"
+     id="text9">Serial data available?</text>
+  <!-- Read Command -->
+  <rect
+     x="300"
+     y="500"
+     width="200"
+     height="40"
+     rx="5"
+     class="process"
+     id="rect9" />
+  <text
+     x="400"
+     y="525"
+     class="text"
+     text-anchor="middle"
+     id="text10">Read command string</text>
+  <!-- Command == START? -->
+  <polygon
+     points="400,560 500,610 400,660 300,610"
+     class="decision"
+     id="polygon10" />
+  <text
+     x="400"
+     y="615"
+     class="text"
+     text-anchor="middle"
+     id="text11">Command == &quot;START&quot;?</text>
+  <!-- Initialize Recording -->
+  <rect
+     x="300"
+     y="680"
+     width="200"
+     height="120"
+     rx="5"
+     class="process"
+     id="rect11" />
+  <text
+     x="400"
+     y="700"
+     class="text"
+     text-anchor="middle"
+     id="text12">Initialize Recording</text>
+  <text
+     x="400"
+     y="720"
+     class="small-text"
+     text-anchor="middle"
+     id="text13">Clear serial buffer</text>
+  <text
+     x="400"
+     y="740"
+     class="small-text"
+     text-anchor="middle"
+     id="text14">Reset sample counter</text>
+  <text
+     x="400"
+     y="760"
+     class="small-text"
+     text-anchor="middle"
+     id="text15">Send CSV header</text>
+  <text
+     x="400"
+     y="780"
+     class="small-text"
+     text-anchor="middle"
+     id="text16">Set isRecording = true</text>
+  <!-- Is Recording? -->
+  <polygon
+     points="400,820 500,870 400,920 300,870"
+     class="decision"
+     id="polygon16" />
+  <text
+     x="400"
+     y="875"
+     class="text"
+     text-anchor="middle"
+     id="text17">isRecording == true?</text>
+  <!-- Check recording time -->
+  <polygon
+     points="400,940 500,990 400,1040 300,990"
+     class="decision"
+     id="polygon17" />
+  <text
+     x="400"
+     y="975"
+     class="small-text"
+     text-anchor="middle"
+     id="text18">elapsedTime =</text>
+  <text
+     x="400"
+     y="995"
+     class="small-text"
+     text-anchor="middle"
+     id="text19">recordingDuration?</text>
+  <!-- Check Sample Interval -->
+  <polygon
+     points="400,1060 500,1110 400,1160 300,1110"
+     class="decision"
+     id="polygon19" />
+  <text
+     x="401.45419"
+     y="1107.7242"
+     class="small-text"
+     text-anchor="middle"
+     id="text20">Time since last sample</text>
+  <text
+     x="403.27197"
+     y="1132.0869"
+     class="small-text"
+     text-anchor="middle"
+     id="text21">≥ sampleInterval?</text>
+  <!-- Sample and Send Data -->
+  <rect
+     x="550"
+     y="1080"
+     width="180"
+     height="60"
+     rx="5"
+     class="process"
+     id="rect21" />
+  <text
+     x="640"
+     y="1105"
+     class="small-text"
+     text-anchor="middle"
+     id="text22">Read analog inputs</text>
+  <text
+     x="640"
+     y="1125"
+     class="small-text"
+     text-anchor="middle"
+     id="text23">Send data via Serial</text>
+  <!-- End Recording -->
+  <rect
+     x="120.30443"
+     y="980.12451"
+     width="159.57109"
+     height="61.807598"
+     rx="6.1373501"
+     class="process"
+     id="rect23" />
+  <text
+     x="205.23137"
+     y="1006.5424"
+     class="small-text"
+     text-anchor="middle"
+     id="text24">Set isRecording = false</text>
+  <text
+     x="204.20308"
+     y="1026.5424"
+     class="small-text"
+     text-anchor="middle"
+     id="text25">Send completion message</text>
+  <!-- Arrows -->
+  <path
+     d="M 400 100 L 400 120"
+     class="arrow"
+     id="path25" />
+  <path
+     d="M 400 220 L 400 250"
+     class="arrow"
+     id="path26" />
+  <path
+     d="M 400 280 L 400 310"
+     class="arrow"
+     id="path27" />
+  <path
+     d="M 400 360 L 400 380"
+     class="arrow"
+     id="path28" />
+  <path
+     d="m 148.88882,959.47815 v 20"
+     class="arrow"
+     id="path28-5"
+     style="fill:none;stroke:#333333;stroke-width:1.5;marker-end:url(#arrowhead-1)" />
+  <path
+     d="M 400 480 L 400 500"
+     class="arrow"
+     id="path29" />
+  <path
+     d="M 400 540 L 400 560"
+     class="arrow"
+     id="path30" />
+  <path
+     d="M 400 660 L 400 680"
+     class="arrow"
+     id="path31" />
+  <path
+     d="M 400 800 L 400 820"
+     class="arrow"
+     id="path32" />
+  <path
+     d="M 400 920 L 400 940"
+     class="arrow"
+     id="path33" />
+  <path
+     d="M 400 1040 L 400 1060"
+     class="arrow"
+     id="path34" />
+  <!-- Decision arrows -->
+  <path
+     d="M 500 430 L 550 430 L 550 870 L 500 870"
+     class="arrow"
+     id="path35" />
+  <text
+     x="512.64862"
+     y="422.41705"
+     class="small-text"
+     id="text35">No</text>
+  <text
+     x="409.63864"
+     y="492.17856"
+     class="small-text"
+     id="text35-9"
+     style="font-size:12px;font-family:Arial;fill:#000000">Yes</text>
+  <text
+     x="413.25275"
+     y="933.17853"
+     class="small-text"
+     id="text35-9-8"
+     style="font-size:12px;font-family:Arial;fill:#000000">Yes</text>
+  <path
+     d="M 500 610 L 550 610 L 550 870 L 500 870"
+     class="arrow"
+     id="path36" />
+  <text
+     x="516.28418"
+     y="603.85248"
+     class="small-text"
+     id="text36">No</text>
+  <path
+     d="M 300 870 L 150 870 L 150 430 L 300 430"
+     class="arrow"
+     id="path37" />
+  <text
+     x="165"
+     y="650"
+     class="small-text"
+     id="text37">No</text>
+  <path
+     d="M 300,990 H 280.98875"
+     class="arrow"
+     id="path38"
+     style="stroke-width:0.93354331;stroke-dasharray:none" />
+  <text
+     x="287.44809"
+     y="979.18085"
+     class="small-text"
+     id="text38">No</text>
+  <text
+     x="156.60779"
+     y="964.19397"
+     class="small-text"
+     id="text38-2"
+     style="font-size:12px;font-family:Arial;fill:#000000">No</text>
+  <path
+     d="M 500 1110 L 550 1110"
+     class="arrow"
+     id="path39" />
+  <text
+     x="515"
+     y="1095"
+     class="small-text"
+     id="text39">Yes</text>
+  <path
+     d="M 300 1110 L 200 1110 L 200 1190 L 620 1190 L 620 1140"
+     class="arrow"
+     id="path40" />
+  <text
+     x="260"
+     y="1095"
+     class="small-text"
+     id="text40">No</text>
+  <path
+     d="M 640 1080 L 640 870 L 500 870"
+     class="arrow"
+     id="path41" />
+  <!-- Loop back to main loop check -->
+  <path
+     d="M 730 1110 L 760 1110 L 760 340 L 500 340"
+     class="arrow"
+     id="path43" />
+  <path
+     style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.3443px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="m 150.41206,869.55532 -1.85887,109.98963"
+     id="path1"
+     inkscape:connector-type="polyline"
+     inkscape:connector-curvature="0" />
+</svg>

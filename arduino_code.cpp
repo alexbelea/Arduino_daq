@@ -28,7 +28,7 @@
    }
    
    // Optimize ADC for faster sampling
-   // Set ADC prescaler to 16 (default is 128)
+   // Set ADC prescaler to 16 (default is 128) 16MHz/16  = 1kSPS
    ADCSRA = (ADCSRA & 0xF8) | 0x04;
    
    // Wait for serial connection to establish
