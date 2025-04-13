@@ -8,7 +8,7 @@ from scipy import signal
 
 def apply_lowpass_filter(data, fs):
     """Apply a 4-pole low-pass Butterworth filter with 5Hz cutoff"""
-    cutoff_freq = 5.0
+    cutoff_freq = 2.0
     filter_order = 4
     
     nyquist = 0.5 * fs
@@ -19,29 +19,40 @@ def apply_lowpass_filter(data, fs):
     
     return filtered_data
 
+# Load data from CSV, apply a 4-pole low-pass filter, and save the filtered data
 def filter_and_save_data(filename):
-    """Load data from CSV, apply a 4-pole low-pass filter, and save the filtered data"""
-    # Read the CSV data
+    
+    # Read the CSV data to pandas DataFrame
+    #  It knows what are the column names
     df = pd.read_csv(filename)
     
     # Clean the dataframe - convert all columns to numeric
-    for col in df.columns:
+    for col in df.columns:                  # v - write NaN where it can't convert to number (in teh data, not column names)
         df[col] = pd.to_numeric(df[col], errors='coerce')
-    
+
+    # remove rows with NaN (not a number)
     df = df.dropna()
     
+    # Samples not at exact distance from each other
     # Calculate the sampling frequency (median of differences)
+    # numpy.diff to get the difference between samples
     time_diffs = np.diff(df['Time(ms)'])
+    # numpy.median to get the median
     median_time_diff = np.median(time_diffs)  # in milliseconds
     fs = 1000.0 / median_time_diff  # Convert to Hz
     
-    # Filter each analog channel
+    # Filter each analog channel:
+    # ID column head for each channel 
     analog_channels = ['A0(V)', 'A1(V)', 'A2(V)', 'A3(V)']
+    # take each channel one at a time
     for channel in analog_channels:
+        # if name maches a column name
         if channel in df.columns:
+            # add a new column _filtered, and send the array containing all the raw values to 
+            # have them filtered, and save them in the new _filtered column
             df[f"{channel}_filtered"] = apply_lowpass_filter(df[channel].values, fs)
     
-    # Save the filtered data to a new CSV file
+    # Save the pandas Dataframe with filtered columns to a new CSV file
     filtered_filename = f"{os.path.splitext(filename)[0]}_filtered.csv"
     df.to_csv(filtered_filename, index=False)
     
@@ -111,7 +122,7 @@ def main():
     # Use a default port (COM3 for Windows, modify as needed)
     default_port = "COM3"  # Change to match your system
     
-    print(f"Using default port: {default_port}")
+    print(f"Using  port: {default_port}")
     
     # Configure serial port
     try:
@@ -131,7 +142,7 @@ def main():
     # Wait for Arduino ready
     print("Waiting for Arduino to be ready...")
     ready = False
-    timeout = time.time() + 10
+    timeout = time.time() + 10 # don't wait too long
     
     while not ready and time.time() < timeout:
         line = ser.readline().decode('utf-8', errors='ignore').strip()
