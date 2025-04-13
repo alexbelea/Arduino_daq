@@ -101,7 +101,7 @@ def filter_and_save_data(filename, cutoff_freq=2.0, filter_order=4):
             if channel in df.columns:
                 df[f"{channel}_filtered"] = apply_lowpass_filter(
                     df[channel].values, cutoff_freq, fs, order=filter_order
-                )
+                )   
         
         # Save the filtered data to a new CSV file
         filtered_filename = f"{os.path.splitext(filename)[0]}_filtered.csv"
@@ -403,7 +403,7 @@ def main():
                 plot_data(filtered_filename, show_original=True, show_filtered=True, overlapping_plots=overlapping)
                 
     except serial.SerialException as e:
-        print(f"Error: {e}")
+        print(f"Error: {e}")                                                                # not good for report
         print("Tips for Linux serial ports:")
         print("1. Make sure you have permission to access serial ports.")
         print("2. You might need to run: sudo usermod -a -G dialout $USER")

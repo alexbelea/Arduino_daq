@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 800 1200"
+   version="1.1"
+   id="svg43"
+   xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <style>
+    .box { fill: white; stroke: #333; stroke-width: 2; }
+    .decision { fill: white; stroke: #333; stroke-width: 2; }
+    .start-end { fill: #d4f1f9; stroke: #333; stroke-width: 2; }
+    .process { fill: #e6f2ff; stroke: #333; stroke-width: 2; }
+    .io { fill: #ffe6cc; stroke: #333; stroke-width: 2; }
+    .arrow { stroke: #333; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    .text { font-family: Arial; font-size: 14px; fill: black; }
+    .title { font-family: Arial; font-size: 18px; font-weight: bold; fill: black; }
+    .small-text { font-family: Arial; font-size: 12px; fill: black; }
+  </style>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker
+       id="arrowhead"
+       markerWidth="10"
+       markerHeight="7"
+       refX="9"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="0 0, 10 3.5, 0 7"
+         fill="#333" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle">Python DAQ Script Flowchart</text>
+  
+  <!-- START -->
+  <ellipse cx="400" cy="70" rx="70" ry="30" class="start-end" />
+  <text x="400" y="75" class="text" text-anchor="middle">Start</text>
+  
+  <!-- List Available Ports -->
+  <rect x="300" y="120" width="200" height="60" rx="5" class="process" />
+  <text x="400" y="145" class="text" text-anchor="middle">List Available Ports</text>
+  <text x="400" y="165" class="small-text" text-anchor="middle">list_available_ports()</text>
+  
+  <!-- Display Ports -->
+  <path d="m 260,200 h 280 l -42,30 H 302 Z" class="io" />
+  <text x="400" y="220" class="text" text-anchor="middle">Display Available Ports</text>
+  
+  <!-- Select Port -->
+  <path d="m 260,250 h 280 l -42,30 H 302 Z" class="io" />
+  <text x="400" y="270" class="text" text-anchor="middle">User Selects Port</text>
+  
+  <!-- Configure Serial Connection -->
+  <rect x="300" y="300" width="200" height="80" rx="5" class="process" />
+  <text x="400" y="325" class="text" text-anchor="middle">Configure Serial Port</text>
+  <text x="400" y="345" class="small-text" text-anchor="middle">115200 baud, timeout=2s</text>
+  <text x="400" y="365" class="small-text" text-anchor="middle">Flush buffers</text>
+  
+  <!-- Wait for Arduino Ready -->
+  <polygon points="400,400 500,450 400,500 300,450" class="decision" />
+  <text x="400" y="455" class="text" text-anchor="middle">"ARDUINO_DAQ_READY"</text>
+  <text x="400" y="475" class="small-text" text-anchor="middle">received?</text>
+  
+  <!-- No - Timeout Loop -->
+  <path d="M 300,450 H 200 V 430 H 399" class="arrow" />
+  <text x="240" y="425" class="small-text">No (wait)</text>
+  
+  <!-- Create Output File -->
+  <rect x="300" y="520" width="200" height="60" rx="5" class="process" />
+  <text x="400" y="545" class="text" text-anchor="middle">Create Output File</text>
+  <text x="400" y="565" class="small-text" text-anchor="middle">timestamp-based filename</text>
+  
+  <!-- Send START Command -->
+  <path d="m 260,600 h 280 l -42,30 H 302 Z" class="io" />
+  <text x="400" y="620" class="text" text-anchor="middle">Send "START" Command</text>
+  
+  <!-- Receive Loop -->
+  <polygon points="400,650 500,700 400,750 300,700" class="decision" />
+  <text x="400" y="690" class="small-text" text-anchor="middle">Recording in</text>
+  <text x="400" y="710" class="small-text" text-anchor="middle">progress?</text>
+  
+  <!-- Check Serial Buffer -->
+  <polygon points="400,770 500,820 400,870 300,820" class="decision" />
+  <text x="400" y="825" class="text" text-anchor="middle">Data available?</text>
+  
+  <!-- Read Line and Process -->
+  <rect x="300" y="890" width="200" height="60" rx="5" class="process" />
+  <text x="400" y="915" class="text" text-anchor="middle">Read Serial Line</text>
+  <text x="400" y="935" class="small-text" text-anchor="middle">Decode and process</text>
+  
+  <!-- Check if Line is End Marker -->
+  <polygon points="400,970 500,1020 400,1070 300,1020" class="decision" />
+  <text x="400" y="1015" class="small-text" text-anchor="middle">"RECORDING_COMPLETE"</text>
+  <text x="400" y="1035" class="small-text" text-anchor="middle">received?</text>
+  
+  <!-- Write Data Line -->
+  <path d="m 260,1090 h 280 l -42,30 H 302 Z" class="io" />
+  <text x="400" y="1110" class="text" text-anchor="middle">Write Line to CSV File</text>
+  
+  <!-- Post Processing -->
+  <rect x="300" y="1140" width="200" height="80" rx="5" class="process" />
+  <text x="400" y="1165" class="text" text-anchor="middle">Post-Processing</text>
+  <text x="400" y="1185" class="small-text" text-anchor="middle">Clean data, apply filters,</text>
+  <text x="400" y="1205" class="small-text" text-anchor="middle">create visualization</text>
+  
+  <!-- END -->
+  <ellipse cx="400" cy="1250" rx="70" ry="30" class="start-end" />
+  <text x="400" y="1255" class="text" text-anchor="middle">End</text>
+  
+  <!-- Connect Flowchart Elements with Arrows -->
+  <!-- Start to List Ports -->
+  <path d="M 400,100 V 120" class="arrow" />
+  
+  <!-- List Ports to Display Ports -->
+  <path d="M 400,180 V 200" class="arrow" />
+  
+  <!-- Display Ports to Select Port -->
+  <path d="M 400,230 V 250" class="arrow" />
+  
+  <!-- Select Port to Configure Serial -->
+  <path d="M 400,280 V 300" class="arrow" />
+  
+  <!-- Configure Serial to Wait for Arduino -->
+  <path d="M 400,380 V 400" class="arrow" />
+  
+  <!-- Wait for Arduino to Create File (Yes branch) -->
+  <path d="M 400,500 V 520" class="arrow" />
+  <text x="410" y="510" class="small-text">Yes</text>
+  
+  <!-- Create File to Send START -->
+  <path d="M 400,580 V 600" class="arrow" />
+  
+  <!-- Send START to Receive Loop -->
+  <path d="M 400,630 V 650" class="arrow" />
+  
+  <!-- Receive Loop to Check Serial -->
+  <path d="M 400,750 V 770" class="arrow" />
+  <text x="410" y="760" class="small-text">Yes</text>
+  
+  <!-- Check Serial to Read Line -->
+  <path d="M 400,870 V 890" class="arrow" />
+  <text x="410" y="880" class="small-text">Yes</text>
+  
+  <!-- Read Line to Check End Marker -->
+  <path d="M 400,950 V 970" class="arrow" />
+  
+  <!-- Not End Marker to Write Data -->
+  <path d="M 300,1020 H 200 V 1105 H 260" class="arrow" />
+  <text x="240" y="1000" class="small-text">No</text>
+  
+  <!-- Write Data back to Receive Loop -->
+  <path d="M 550,1105 H 650 V 700 H 500" class="arrow" />
+  
+  <!-- End Marker to Post Processing -->
+  <path d="M 400,1070 V 1140" class="arrow" />
+  <text x="410" y="1100" class="small-text">Yes</text>
+  
+  <!-- Receive Loop (No) to Post Processing -->
+  <path d="M 500,700 H 680 V 1180 H 500" class="arrow" />
+  <text x="510" y="690" class="small-text">No (timeout)</text>
+  
+  <!-- Post Processing to End -->
+  <path d="M 400,1220 V 1220" class="arrow" />
+</svg>

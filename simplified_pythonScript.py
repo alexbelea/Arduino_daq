@@ -1,28 +1,10 @@
 import serial
-import platform
-import glob
 import time
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
-import re
 import numpy as np
 from scipy import signal
-
-def list_available_ports():
-    """Lists all available serial ports based on the operating system"""
-    system = platform.system()
-    
-    if system == 'Windows':
-        import serial.tools.list_ports
-        ports = serial.tools.list_ports.comports()
-        return [port.device for port in ports]
-    elif system == 'Linux':
-        return glob.glob('/dev/tty[A-Za-z]*')
-    elif system == 'Darwin':  # macOS
-        return glob.glob('/dev/tty.*') + glob.glob('/dev/cu.*')
-    else:
-        return []
 
 def apply_lowpass_filter(data, fs):
     """Apply a 4-pole low-pass Butterworth filter with 5Hz cutoff"""
@@ -40,12 +22,9 @@ def apply_lowpass_filter(data, fs):
 def filter_and_save_data(filename):
     """Load data from CSV, apply a 4-pole low-pass filter, and save the filtered data"""
     # Read the CSV data
-    try:
-        df = pd.read_csv(filename)
-    except:
-        df = pd.read_csv(filename, names=['Sample', 'Time(ms)', 'A0(V)', 'A1(V)', 'A2(V)', 'A3(V)'])
+    df = pd.read_csv(filename)
     
-    # Clean the dataframe
+    # Clean the dataframe - convert all columns to numeric
     for col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
     
@@ -71,16 +50,7 @@ def filter_and_save_data(filename):
 def plot_data(filename):
     """Plot the DAQ data with original and filtered signals overlapped"""
     # Read the CSV data
-    try:
-        df = pd.read_csv(filename)
-    except:
-        df = pd.read_csv(filename, names=['Sample', 'Time(ms)', 'A0(V)', 'A1(V)', 'A2(V)', 'A3(V)'])
-    
-    # Clean the dataframe
-    for col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-    
-    df = df.dropna()
+    df = pd.read_csv(filename)
     
     # Identify analog channels and filtered channels
     analog_channels = [col for col in df.columns if col.startswith('A') and col.endswith('(V)') and not '_filtered' in col]
@@ -137,58 +107,21 @@ def plot_data(filename):
     plt.tight_layout()
     plt.show()
 
-def clean_data_file(filename):
-    """Cleans a CSV data file by removing invalid lines"""
-    # Read the file
-    with open(filename, 'r') as file:
-        lines = file.readlines()
-    
-    cleaned_lines = []
-    header_found = False
-    
-    # Regular expression to match valid data lines
-    data_pattern = re.compile(r'^\d+,\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+$')
-    
-    for line in lines:
-        line = line.strip()
-        
-        # Keep the header line
-        if "Sample,Time" in line:
-            cleaned_lines.append(line + '\n')
-            header_found = True
-            continue
-        
-        # Check if it's a valid data line
-        if data_pattern.match(line) or (line.count(',') == 5 and line[0].isdigit()):
-            cleaned_lines.append(line + '\n')
-    
-    # If no header was found, add one
-    if not header_found and cleaned_lines:
-        cleaned_lines.insert(0, "Sample,Time(ms),A0(V),A1(V),A2(V),A3(V)\n")
-    
-    # Write the cleaned data back to file
-    clean_filename = f"{os.path.splitext(filename)[0]}_clean.csv"
-    with open(clean_filename, 'w') as file:
-        file.writelines(cleaned_lines)
-        
-    return clean_filename
-
 def main():
-    # List available ports
-    available_ports = list_available_ports()
-    print("Available ports:")
-    for i, port in enumerate(available_ports):
-        print(f"{i}: {port}")
-
-    # Let user select port
-    if available_ports:
-        port_index = int(input("Select port by number: "))
-        selected_port = available_ports[port_index]
-    else:
-        selected_port = input("Enter port manually: ")
-
+    # Use a default port (COM3 for Windows, modify as needed)
+    default_port = "COM3"  # Change to match your system
+    
+    print(f"Using default port: {default_port}")
+    
     # Configure serial port
-    ser = serial.Serial(selected_port, 115200, timeout=2)
+    try:
+        ser = serial.Serial(default_port, 115200, timeout=2)
+        print("Connected to Arduino!")
+    except serial.SerialException:
+        print(f"Error: Could not open port {default_port}")
+        print("Please modify the default_port variable in the script.")
+        return
+    
     time.sleep(2)  # Wait for Arduino to reset
     
     # Flush buffers
@@ -196,6 +129,7 @@ def main():
     ser.reset_output_buffer()
     
     # Wait for Arduino ready
+    print("Waiting for Arduino to be ready...")
     ready = False
     timeout = time.time() + 10
     
@@ -203,9 +137,18 @@ def main():
         line = ser.readline().decode('utf-8', errors='ignore').strip()
         if line == "ARDUINO_DAQ_READY":
             ready = True
+            print("Arduino is ready!")
+    
+    if not ready:
+        print("Timed out waiting for Arduino. Make sure it's properly connected.")
+        ser.close()
+        return
     
     # Create a filename for this recording session
     filename = f"arduino_daq_data_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    print(f"Starting data recording to {filename}...")
+    print("Press Ctrl+C to stop if needed.")
     
     with open(filename, 'w', newline='') as file:
         # Send start command
@@ -224,21 +167,33 @@ def main():
                 
                 if "RECORDING_COMPLETE" in line:
                     recording = False
+                    print("Recording complete!")
                 elif "END_OF_DATA" in line:
                     pass
                 elif line:
                     # Write the line to the file
                     file.write(line + '\n')
                     data_lines += 1
+                    
+                    # Show progress occasionally
+                    if data_lines % 100 == 0:
+                        print(f"Recorded {data_lines} data points...")
     
     # Close the serial port
     if ser.is_open:
         ser.close()
+        print("Serial port closed.")
     
-    # Process the data automatically
-    clean_filename = clean_data_file(filename)
-    filtered_filename = filter_and_save_data(clean_filename)
+    print(f"Recorded {data_lines} lines of data.")
+    
+    # Process the data
+    print("Applying filters to data...")
+    filtered_filename = filter_and_save_data(filename)
+    print(f"Filtered data saved to {filtered_filename}")
+    
+    print("Generating plot...")
     plot_data(filtered_filename)
+    print("Done!")
 
 if __name__ == "__main__":
     try:
