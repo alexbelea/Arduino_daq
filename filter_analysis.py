@@ -180,10 +180,7 @@ def compare_lfilter_vs_filtfilt(fs=500):
     mag_lfilter = 20 * np.log10(np.abs(fft_lfilter) + eps)
     mag_filtfilt = 20 * np.log10(np.abs(fft_filtfilt) + eps)
     
-    # Normalize magnitudes
-    mag_original -= np.max(mag_original)
-    mag_lfilter -= np.max(mag_original)
-    mag_filtfilt -= np.max(mag_original)
+    # No normalization - show absolute magnitudes
     
     # Calculate phase responses
     phase_original = np.unwrap(np.angle(fft_original))
@@ -207,7 +204,6 @@ def compare_lfilter_vs_filtfilt(fs=500):
     # Add theoretical response from freqz
     frequencies = w * fs / (2 * np.pi)
     mag_theory = 20 * np.log10(np.abs(h_theory))
-    mag_theory -= np.max(mag_original)  # Normalize
     
     # Square the theoretical magnitude for filtfilt (twice the attenuation in dB)
     mag_theory_squared = 2 * mag_theory
@@ -249,10 +245,12 @@ def compare_lfilter_vs_filtfilt(fs=500):
     
     plt.title('Magnitude Response Comparison: lfilter() vs filtfilt()')
     plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Magnitude (dB, normalized)')
+    plt.ylabel('Magnitude (dB, absolute)')
     plt.grid(True, which='both', linestyle='--', alpha=0.5)
     plt.xlim([0.1, fs/2])
-    plt.ylim([-80, 5])
+    # Adjust y-limits based on the actual data range
+    plt.ylim([np.min([np.min(mag_lfilter), np.min(mag_filtfilt)]), 
+              np.max([np.max(mag_original), np.max(mag_lfilter), np.max(mag_filtfilt)]) + 10])
     plt.legend()
     
     # Plot phase response
@@ -278,7 +276,8 @@ def compare_lfilter_vs_filtfilt(fs=500):
     # Add explanatory text
     plt.figtext(0.5, 0.01, 
                 'filtfilt() applies the filter twice (forward and backward),\n'
-                'which doubles the magnitude roll-off but produces zero phase distortion.',
+                'which doubles the magnitude roll-off but produces zero phase distortion.\n'
+                'Note: This plot shows absolute magnitude values without normalization.',
                 ha='center', fontsize=11, bbox=dict(facecolor='yellow', alpha=0.2))
     
     plt.suptitle(f'Comparison of lfilter() vs filtfilt() on 4-pole Butterworth Filter\n'

@@ -1,22 +1,24 @@
   /*
-  * Reads 4 analog inputs (0-5V) for recordingDuration seconds
+  * Reads 4 analog inputs (0-5V) for recording_dur seconds
   * Streams data to PC while recording
   * 
   */
+  // change to 1 to print debug messages on Serial Monitor
+  bool debug = false;
 
   const int analogInputs[] = {A0, A1, A2, A3};
   
   
-  // setup variables
-  unsigned long startTime;
-  const unsigned long recordingDuration = 5000; // 25 seconds in milliseconds (ENSURE python code is greater than this)
-  unsigned long lastSampleTime = 0;
-  const unsigned long minSampleInterval = 2; // Sample every 2ms (adjust for stability)
-  bool isRecording = false;
-  int sampleCount = 0;
+  // set up the global varialbes
+  unsigned long start_time;
+  const unsigned long recording_dur = 5000; // 25 seconds in milliseconds (ENSURE python code is greater than this)
+  unsigned long last_sample_time = 0;
+  const unsigned long min_samp_interval = 2; // Sample every 2ms (adjust for stability)
+  bool recording = false;
+  int sample_count = 0;
   
   void setup() {
-    // serial communication at standard 115200 bps
+    // serial communication at 115200 bps
     Serial.begin(115200);
     
     // Set pins as input
@@ -27,9 +29,7 @@
     // Optimize ADC for faster sampling
     // Set ADC prescaler to 16 (default is 128)
     //
-    // Bit: 7:enable; 6: initiate a convertion 5:
-    //
-    //
+    // Bit: 7:enable; 6: initiate a convertion 5: 
     //
     ADCSRA = (ADCSRA & 0xF8) | 0x04;
     
@@ -47,21 +47,23 @@
       command.trim();
       
       if (command == "START") {
+        if(debug) Serial.println("received START command");
+
         // Clear any remaining data in serial buffer
         while (Serial.available()) {
           Serial.read();
         }
         
         // Reset sample counter
-        sampleCount = 0;
+        sample_count = 0;
         
         // Send header once
         Serial.println("Sample,Time(ms),A0(V),A1(V),A2(V),A3(V)");
         
         // Start recording
-        isRecording = true;
-        startTime = millis();
-        lastSampleTime = startTime;
+        recording = true;
+        start_time = millis();
+        last_sample_time = start_time;
         
         // Send confirmation
         Serial.println("RECORDING_STARTED");
@@ -69,41 +71,44 @@
     }
     
     // If we're recording, collect and send data immediately
-    if (isRecording) {
+    if (recording) {
+      if(debug) Serial.println("Recording!");
       unsigned long currentTime = millis();
-      unsigned long elapsedTime = currentTime - startTime;
+      unsigned long elapsed_time = currentTime - start_time;
       
       // Check if we're still within the recording period
-      if (elapsedTime <= recordingDuration) {
+      if (elapsed_time <= recording_dur) {
+        if(debug) Serial.println("elapsed time << duration");
         // Only sample at the specified interval
-        if (currentTime - lastSampleTime >= minSampleInterval) {
-          lastSampleTime = currentTime;
+        if (currentTime - last_sample_time >= min_samp_interval) {
+          last_sample_time = currentTime;
           
           // Increment sample counter
-          sampleCount++;
+          sample_count++;
           
           // Start building the output string
-          String dataString = String(sampleCount) + "," + String(elapsedTime);
+          String data_string = String(sample_count) + "," + String(elapsed_time);
           
           // Multiplex through the four inputs sequentially
           for (int i = 0; i < 4; i++) {
-            int rawValue = analogRead(analogInputs[i]);
-            float voltage = rawValue * (5.0 / 1023.0);
-            dataString += "," + String(voltage, 3);
+            if(debug) Serial.println("reading input: " + String(i));
+            int raw_value = analogRead(analogInputs[i]);
+            float voltage = raw_value * (5.0 / 1023.0);
+            data_string += "," + String(voltage, 3);
           }
           
           // Send the complete data string at once
-          Serial.println(dataString);
+          Serial.println(data_string);
         }
       }
       else {
         // End of recording
-        isRecording = false;
+        recording = false;
         
         // Send notification that recording is complete
         Serial.println("RECORDING_COMPLETE");
         Serial.print("SAMPLES_COLLECTED:");
-        Serial.println(sampleCount);
+        Serial.println(sample_count);
         Serial.println("END_OF_DATA");
       }
     }

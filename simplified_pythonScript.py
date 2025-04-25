@@ -13,7 +13,7 @@ def apply_lowpass_filter(data, fs):
     
     nyquist = 0.5 * fs
     normal_cutoff = cutoff_freq / nyquist
-    
+    # analog=False implies  bilinear Transformation
     b, a = signal.butter(filter_order, normal_cutoff, btype='low', analog=False)
     filtered_data = signal.filtfilt(b, a, data)
     
@@ -58,13 +58,27 @@ def filter_and_save_data(filename):
     
     return filtered_filename
 
+#
+# Plot the DAQ data with original and filtered signals overlapped
+#
 def plot_data(filename):
-    """Plot the DAQ data with original and filtered signals overlapped"""
-    # Read the CSV data
+    
+    # Read the CSV data with pandas
     df = pd.read_csv(filename)
     
-    # Identify analog channels and filtered channels
-    analog_channels = [col for col in df.columns if col.startswith('A') and col.endswith('(V)') and not '_filtered' in col]
+    # Initialize an empty list to store our analog channel names
+    analog_channels = []
+
+    # Look through all column names in the DataFrame
+    for col in df.columns:
+        # the column name starts with 'A'
+        if col.startswith('A'):
+            #  the column name ends with '(V)'
+            if col.endswith('(V)'):
+                # the column name does NOT contain '_filtered'
+                if '_filtered' not in col:
+                    # add this column name to our list
+                    analog_channels.append(col)
     
     # Create color cycle for different channels
     colors = ['blue', 'green', 'red', 'purple']
@@ -119,93 +133,107 @@ def plot_data(filename):
     plt.show()
 
 def main():
-    # Use a default port (COM3 for Windows, modify as needed)
-    default_port = "COM3"  # Change to match your system
-    
-    print(f"Using  port: {default_port}")
-    
-    # Configure serial port
-    try:
-        ser = serial.Serial(default_port, 115200, timeout=2)
-        print("Connected to Arduino!")
-    except serial.SerialException:
-        print(f"Error: Could not open port {default_port}")
-        print("Please modify the default_port variable in the script.")
-        return
-    
-    time.sleep(2)  # Wait for Arduino to reset
-    
-    # Flush buffers
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
-    
-    # Wait for Arduino ready
-    print("Waiting for Arduino to be ready...")
-    ready = False
-    timeout = time.time() + 10 # don't wait too long
-    
-    while not ready and time.time() < timeout:
-        line = ser.readline().decode('utf-8', errors='ignore').strip()
-        if line == "ARDUINO_DAQ_READY":
-            ready = True
-            print("Arduino is ready!")
-    
-    if not ready:
-        print("Timed out waiting for Arduino. Make sure it's properly connected.")
-        ser.close()
-        return
-    
-    # Create a filename for this recording session
-    filename = f"arduino_daq_data_{time.strftime('%Y%m%d_%H%M%S')}.csv"
-    
-    print(f"Starting data recording to {filename}...")
-    print("Press Ctrl+C to stop if needed.")
-    
-    with open(filename, 'w', newline='') as file:
-        # Send start command
-        ser.write(b"START\n")
-        
-        recording = True
-        data_lines = 0
-        
-        # Start time for timeout
-        start_time = time.time()
-        timeout_duration = 15  # seconds
-        
-        while recording and (time.time() - start_time) < timeout_duration:
-            if ser.in_waiting:
-                line = ser.readline().decode('utf-8', errors='ignore').strip()
-                
-                if "RECORDING_COMPLETE" in line:
-                    recording = False
-                    print("Recording complete!")
-                elif "END_OF_DATA" in line:
-                    pass
-                elif line:
-                    # Write the line to the file
-                    file.write(line + '\n')
-                    data_lines += 1
-                    
-                    # Show progress occasionally
-                    if data_lines % 100 == 0:
-                        print(f"Recorded {data_lines} data points...")
-    
-    # Close the serial port
-    if ser.is_open:
-        ser.close()
-        print("Serial port closed.")
-    
-    print(f"Recorded {data_lines} lines of data.")
-    
-    # Process the data
-    print("Applying filters to data...")
-    filtered_filename = filter_and_save_data(filename)
-    print(f"Filtered data saved to {filtered_filename}")
-    
-    print("Generating plot...")
-    plot_data(filtered_filename)
-    print("Done!")
 
+    # ASk if to plot or measure
+    what_to_do = int(input("Record new measurement (1) or plot existing (2): "))
+
+    # User selected to plot old csv
+    if(what_to_do == 2):
+        plot_data(input("Insert the name of the csv: "))
+    
+
+    # User selected to record new measurement
+    elif(what_to_do == 1):
+        # Use a default port (COM3 for Windows, modify as needed)
+        default_port = "COM3"  # Change to match your system
+        
+        print(f"Using  port: {default_port}")
+        
+        # Configure serial port
+        try:
+            ser = serial.Serial(default_port, 115200, timeout=2)
+            print("Connected to Arduino!")
+        except serial.SerialException:
+            print(f"Error: Could not open port {default_port}")
+            print("Please modify the default_port variable in the script.")
+            return
+        
+        time.sleep(2)  # Wait for Arduino to reset
+        
+        # Flush buffers
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        
+        # Wait for Arduino ready
+        print("Waiting for Arduino to be ready...")
+        ready = False
+        timeout = time.time() + 10 # don't wait too long
+        
+        while not ready and time.time() < timeout:
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
+            if line == "ARDUINO_DAQ_READY":
+                ready = True
+                print("Arduino is ready!")
+        
+        if not ready:
+            print("Timed out waiting for Arduino. Make sure it's properly connected.")
+            ser.close()
+            return
+        
+        # Create a filename for this recording session
+        filename = f"arduino_daq_data_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        print(f"Starting data recording to {filename}...")
+        print("Press Ctrl+C to stop if needed.")
+        
+        with open(filename, 'w', newline='') as file:
+            # Send start command
+            ser.write(b"START\n")
+            
+            recording = True
+            data_lines = 0
+            
+            # Start time for timeout
+            start_time = time.time()
+            timeout_duration = 15  # seconds
+            
+            while recording and (time.time() - start_time) < timeout_duration:
+                if ser.in_waiting:
+                    line = ser.readline().decode('utf-8', errors='ignore').strip()
+                    
+                    if "RECORDING_COMPLETE" in line:
+                        recording = False
+                        print("Recording complete!")
+                    elif "END_OF_DATA" in line:
+                        pass
+                    elif line:
+                        # Write the line to the file
+                        file.write(line + '\n')
+                        data_lines += 1
+                        
+                        # Show progress occasionally
+                        if data_lines % 100 == 0:
+                            print(f"Recorded {data_lines} data points...")
+        
+        # Close the serial port
+        if ser.is_open:
+            ser.close()
+            print("Serial port closed.")
+        
+        print(f"Recorded {data_lines} lines of data.")
+        
+        # Process the data
+        print("Applying filters to data...")
+        filtered_filename = filter_and_save_data(filename)
+        print(f"Filtered data saved to {filtered_filename}")
+        
+        print("Generating plot...")
+        plot_data(filtered_filename)
+        print("Done!")
+        
+    else:
+        print("Wrong Choice. Goodbye!")
+        exit()
 if __name__ == "__main__":
     try:
         main()
